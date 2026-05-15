@@ -15,6 +15,9 @@ class TestCustomerAPI(unittest.TestCase):
         self.assertEqual(1, _extract_customer_id("/customers/1"))
         self.assertIsNone(_extract_customer_id("/customers"))
         self.assertIsNone(_extract_customer_id("/customers/abc"))
+        self.assertEqual(1, _extract_customer_id("/customers/1/"))
+        self.assertIsNone(_extract_customer_id("/customers/1/extra"))
+        self.assertIsNone(_extract_customer_id("/customers/-1"))
 
     def test_list_customers(self):
         status, payload = self.api.list_customers()
@@ -48,12 +51,22 @@ class TestCustomerAPI(unittest.TestCase):
         self.assertEqual(400, status)
         self.assertIn("non-empty string", payload["error"])
 
+    def test_update_missing_customer(self):
+        status, payload = self.api.update_customer(999, {"city": "Nowhere"})
+        self.assertEqual(404, status)
+        self.assertEqual("Customer not found", payload["error"])
+
     def test_delete_customer(self):
         status, payload = self.api.delete_customer(1)
         self.assertEqual(204, status)
         self.assertIsNone(payload)
         status_after_delete, _ = self.api.get_customer(1)
         self.assertEqual(404, status_after_delete)
+
+    def test_delete_missing_customer(self):
+        status, payload = self.api.delete_customer(999)
+        self.assertEqual(404, status)
+        self.assertEqual("Customer not found", payload["error"])
 
 
 if __name__ == "__main__":

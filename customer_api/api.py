@@ -75,8 +75,6 @@ class CustomerRequestHandler(BaseHTTPRequestHandler):
     api = None
 
     def _api(self):
-        if self.__class__.api is None:
-            self.__class__.api = CustomerAPI()
         return self.__class__.api
 
     def _send_json(self, status, payload):
@@ -138,9 +136,11 @@ class CustomerRequestHandler(BaseHTTPRequestHandler):
         self._send_json(status, response)
 
 
-def run_server(host="127.0.0.1", port=8000):
+def run_server(host="127.0.0.1", port=8000, api=None):
+    configured_api = api or CustomerAPI()
+
     class _ConfiguredHandler(CustomerRequestHandler):
-        api = CustomerAPI()
+        api = configured_api
 
     server = HTTPServer((host, port), _ConfiguredHandler)
     print(f"Server running on http://{host}:{port}")
