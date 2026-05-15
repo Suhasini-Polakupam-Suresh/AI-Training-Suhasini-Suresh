@@ -15,6 +15,7 @@ class TestCustomerAPI(unittest.TestCase):
         self.assertEqual(1, _extract_customer_id("/customers/1"))
         self.assertIsNone(_extract_customer_id("/customers"))
         self.assertIsNone(_extract_customer_id("/customers/abc"))
+        self.assertIsNone(_extract_customer_id("/customers/0"))
         self.assertEqual(1, _extract_customer_id("/customers/1/"))
         self.assertIsNone(_extract_customer_id("/customers/1/extra"))
         self.assertIsNone(_extract_customer_id("/customers/-1"))

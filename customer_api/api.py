@@ -9,7 +9,8 @@ from customer_api.store import CustomerStore
 def _extract_customer_id(path):
     parts = [part for part in path.split("/") if part]
     if len(parts) == 2 and parts[0] == "customers" and parts[1].isdigit():
-        return int(parts[1])
+        customer_id = int(parts[1])
+        return customer_id if customer_id > 0 else None
     return None
 
 
