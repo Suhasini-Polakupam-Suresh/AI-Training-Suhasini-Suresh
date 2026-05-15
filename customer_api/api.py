@@ -72,7 +72,12 @@ class CustomerAPI:
 class CustomerRequestHandler(BaseHTTPRequestHandler):
     """HTTP request handler exposing customer CRUD routes."""
 
-    api = CustomerAPI()
+    api = None
+
+    def _api(self):
+        if self.__class__.api is None:
+            self.__class__.api = CustomerAPI()
+        return self.__class__.api
 
     def _send_json(self, status, payload):
         self.send_response(status)
@@ -91,12 +96,12 @@ class CustomerRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == "/customers":
-            status, payload = self.api.list_customers()
+            status, payload = self._api().list_customers()
             return self._send_json(status, payload)
 
         customer_id = _extract_customer_id(self.path)
         if customer_id is not None:
-            status, payload = self.api.get_customer(customer_id)
+            status, payload = self._api().get_customer(customer_id)
             return self._send_json(status, payload)
 
         self._send_json(404, {"error": "Route not found"})
@@ -109,7 +114,7 @@ class CustomerRequestHandler(BaseHTTPRequestHandler):
         if payload is None:
             return self._send_json(400, {"error": "Invalid JSON payload"})
 
-        status, response = self.api.create_customer(payload)
+        status, response = self._api().create_customer(payload)
         self._send_json(status, response)
 
     def do_PUT(self):
@@ -121,7 +126,7 @@ class CustomerRequestHandler(BaseHTTPRequestHandler):
         if payload is None:
             return self._send_json(400, {"error": "Invalid JSON payload"})
 
-        status, response = self.api.update_customer(customer_id, payload)
+        status, response = self._api().update_customer(customer_id, payload)
         self._send_json(status, response)
 
     def do_DELETE(self):
@@ -129,12 +134,15 @@ class CustomerRequestHandler(BaseHTTPRequestHandler):
         if customer_id is None:
             return self._send_json(404, {"error": "Route not found"})
 
-        status, response = self.api.delete_customer(customer_id)
+        status, response = self._api().delete_customer(customer_id)
         self._send_json(status, response)
 
 
 def run_server(host="127.0.0.1", port=8000):
-    server = HTTPServer((host, port), CustomerRequestHandler)
+    class _ConfiguredHandler(CustomerRequestHandler):
+        api = CustomerAPI()
+
+    server = HTTPServer((host, port), _ConfiguredHandler)
     print(f"Server running on http://{host}:{port}")
     server.serve_forever()
 

@@ -24,7 +24,7 @@ class TestCustomerAPI(unittest.TestCase):
     def test_get_missing_customer(self):
         status, payload = self.api.get_customer(999)
         self.assertEqual(404, status)
-        self.assertIn("error", payload)
+        self.assertEqual("Customer not found", payload["error"])
 
     def test_create_customer_validation_failure(self):
         status, payload = self.api.create_customer({"name": "New"})
@@ -52,6 +52,8 @@ class TestCustomerAPI(unittest.TestCase):
         status, payload = self.api.delete_customer(1)
         self.assertEqual(204, status)
         self.assertIsNone(payload)
+        status_after_delete, _ = self.api.get_customer(1)
+        self.assertEqual(404, status_after_delete)
 
 
 if __name__ == "__main__":
